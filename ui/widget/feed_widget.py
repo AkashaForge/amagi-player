@@ -67,4 +67,11 @@ class MovieFeedWidget(QWidget):
         row = index // 4
         col = index % 4
         self.grid_layout.addWidget(card_widget, row, col)
+    def clear_grid(self):
+        """Удаляет все карточки из сетки перед новым выводом или поиском."""
+        while self.grid_layout.count():
+            item = self.grid_layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
 
