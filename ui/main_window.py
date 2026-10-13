@@ -1,168 +1,169 @@
 """
-Модуль главного графического окна приложения Amagi-Player.
-Реализует базовую рамку интерфейса, систему слоев-страниц, парящий поиск,
-угловые системные кнопки и всплывающую UX-плашку продолжения просмотра.
+Модуль главного графического окна Amagi-Player.
+Реализует дизайн-систему Cinematic Dark, верхнюю панель навигации (Header),
+парящий остров продолжения просмотра и менеджер экранов.
 """
 
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QStackedWidget, QPushButton, QLabel, QFrame, QLineEdit
 )
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import pyqtSignal, QPoint
 import os
 import config
 
 class MainWindow(QMainWindow):
     """
-    Главное графическое окно приложения. Выступает визуальным каркасом
-    и центральным диспетчером интерфейса.
+    Главное окно приложения в стиле современных стриминговых медиаплатформ.
+    Управляет позиционированием парящих элементов и переключением контекста.
     """
     
-    # Кастомные сигналы (события) Qt для связи графики с будущим бэкендом
-    theme_toggle_requested = pyqtSignal()      # Сигнал запроса смены темы
-    settings_opened = pyqtSignal()            # Сигнал открытия окна настроек
-    resume_movie_requested = pyqtSignal(int)  # Сигнал запуска видео из плашки истории
+    theme_toggle_requested = pyqtSignal()
+    settings_opened = pyqtSignal()
+    resume_movie_requested = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Amagi-Player")
-        self.resize(1024, 768)
-        
-        # Хранилище ID фильма, отображаемого на плашке «Продолжить»
+        self.resize(1100, 800) # Чуть увеличим базовое окно для красивой сетки
         self._current_resume_id = None
         
-        # Инициализация графического ядра и макета
         self._init_ui_core()
-        
-        # Загрузка и применение стилей оформления QSS
         self._load_stylesheet()
 
     def _init_ui_core(self):
-        """Создает геометрию слоев, кнопки управления и элементы UX."""
-        # Центральный базовый виджет-контейнер
+        """Разворачивает премиальную структуру слоев приложения."""
+        # Центральный виджет-основа
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
         
-        # Главный вертикальный менеджер компоновки всего окна (рамки)
-        main_layout = QVBoxLayout(central_widget)
-        main_layout.setContentsMargins(15, 15, 15, 15)
-        main_layout.setSpacing(10)
+        # Основной вертикальный макет (без внутренних отступов, чтобы шапка прилегала к краям)
+        base_layout = QVBoxLayout(central_widget)
+        base_layout.setContentsMargins(0, 0, 0, 0)
+        base_layout.setSpacing(0)
 
-        # --- ВЕРХНЯЯ ЧАСТЬ: ПОЛУПРОЗРАЧНЫЙ ПАРЯЩИЙ ПОИСК ---
-        search_container = QWidget(self)
-        search_layout = QHBoxLayout(search_container)
-        search_layout.setContentsMargins(0, 0, 0, 10) # Отступ снизу до ленты
+        # 1. СТИЛЬНАЯ ВЕРХНЯЯ ПАНЕЛЬ (HEADER BAR)
+        self.header_bar = QWidget(central_widget)
+        self.header_bar.setObjectName("headerBar")
+        self.header_bar.setFixedHeight(70)
         
-        self.search_bar = QLineEdit(search_container)
+        header_layout = QHBoxLayout(self.header_bar)
+        header_layout.setContentsMargins(30, 0, 30, 0)
+        
+        # Логотип/Название проекта слева
+        logo_label = QLabel("AMAGI", self.header_bar)
+        logo_label.setStyleSheet("color: #FF6600; font-size: 22px; font-weight: 900; letter-spacing: 2px;")
+        header_layout.addWidget(logo_label)
+        header_layout.addSpacing(40)
+        
+        # Парящая вытянутая строка поиска
+        self.search_bar = QLineEdit(self.header_bar)
         self.search_bar.setObjectName("searchBar")
-        self.search_bar.setPlaceholderText("Поиск фильмов по культурному фонду...")
-        search_layout.addWidget(self.search_bar)
+        self.search_bar.setPlaceholderText("Поиск по легальному некоммерческому фонду...")
+        self.search_bar.setFixedWidth(450)
+        header_layout.addWidget(self.search_bar)
         
-        main_layout.addWidget(search_container)
+        # Пружина, сдвигающая последующие элементы в правый край шапки
+        header_layout.addStretch()
+        
+        base_layout.addWidget(self.header_bar)
 
-        # --- СРЕДНЯЯ ЧАСТЬ: МЕНЕДЖЕР ЭКРАНОВ (СТОПКА ВИДЖЕТОВ) ---
-        # Позволяет переключать контент (Лента -> Карточка деталей -> Плеер)
-        self.screen_stack = QStackedWidget(self)
-        
-        # Заготовки-заглушки для будущих экранов ленты и настроек
+        # 2. РАБОЧАЯ ЗОНА (КОНТЕНТНЫЙ МАКЕТ С ОТСТУПАМИ)
+        content_wrapper = QWidget(central_widget)
+        content_layout = QVBoxLayout(content_wrapper)
+        content_layout.setContentsMargins(30, 20, 30, 20)
+        content_layout.setSpacing(15)
+
+        # Менеджер экранов стопки
+        self.screen_stack = QStackedWidget(content_wrapper)
         self.feed_page_placeholder = QWidget()
         self.settings_page_placeholder = QWidget()
-        
         self.screen_stack.addWidget(self.feed_page_placeholder)
         self.screen_stack.addWidget(self.settings_page_placeholder)
-        
-        main_layout.addWidget(self.screen_stack)
+        content_layout.addWidget(self.screen_stack)
 
-        # --- НИЖНЯЯ ПАНЕЛЬ СИСТЕМНЫХ КНОПОК ---
-        bottom_bar = QWidget(self)
+        # Нижняя системная панель
+        bottom_bar = QWidget(content_wrapper)
         bottom_layout = QHBoxLayout(bottom_bar)
-        bottom_layout.setContentsMargins(0, 5, 0, 0)
-        
-        # Отодвигаем кнопки в правый нижний угол с помощью пружины (stretch)
+        bottom_layout.setContentsMargins(0, 0, 0, 0)
         bottom_layout.addStretch()
         
-        # Кнопка динамической смены темы
         self.theme_btn = QPushButton("Сменить тему", bottom_bar)
         self.theme_btn.setObjectName("sysButton")
-        self.theme_btn.clicked.connect(self._on_theme_clicked)
+        self.theme_btn.clicked.connect(self.theme_toggle_requested.emit)
         bottom_layout.addWidget(self.theme_btn)
         
-        # Кнопка перехода к параметрам приложения
         self.settings_btn = QPushButton("Настройки", bottom_bar)
         self.settings_btn.setObjectName("sysButton")
         self.settings_btn.clicked.connect(self._on_settings_clicked)
         bottom_layout.addWidget(self.settings_btn)
         
-        main_layout.addWidget(bottom_bar)
+        content_layout.addWidget(bottom_bar)
+        base_layout.addWidget(content_wrapper)
 
-        # --- ЭЛЕМЕНТ UX: ОКРУГЛАЯ ВСПЛЫВАЮЩАЯ ПЛАШКА «ПРОДОЛЖИТЬ ПРОСМОТР» ---
-        self.resume_panel = QFrame(self)
-        self.resume_panel.setObjectName("continuePanel")
-        self.resume_panel.setFixedHeight(54)
+        # 3. ПАРЯЩИЙ UX-ОСТРОВ «ПРОДОЛЖИТЬ ПРОСМОТР»
+        # Внимание: Родитель — central_widget, это дает полную независимость от layout!
+        self.resume_island = QFrame(central_widget)
+        self.resume_island.setObjectName("continueIsland")
+        self.resume_island.setFixedSize(550, 50) # Компактный скругленный остров
         
-        resume_layout = QHBoxLayout(self.resume_panel)
-        resume_layout.setContentsMargins(20, 0, 20, 0)
+        island_layout = QHBoxLayout(self.resume_island)
+        island_layout.setContentsMargins(20, 0, 15, 0)
         
-        # Информационный текст плашки
-        self.resume_label = QLabel("Продолжить просмотр: ...", self.resume_panel)
-        resume_layout.addWidget(self.resume_label)
+        self.resume_label = QLabel("Продолжить просмотр: ...", self.resume_island)
+        island_layout.addWidget(self.resume_label)
         
-        # Оранжевая кнопка немедленного возврата к воспроизведению
-        self.resume_action_btn = QPushButton("Смотреть", self.resume_panel)
+        island_layout.addStretch()
+        
+        self.resume_action_btn = QPushButton("Смотреть", self.resume_island)
         self.resume_action_btn.setObjectName("actionButton")
         self.resume_action_btn.setFixedHeight(32)
         self.resume_action_btn.clicked.connect(self._on_resume_action_triggered)
-        resume_layout.addWidget(self.resume_action_btn)
+        island_layout.addWidget(self.resume_action_btn)
         
-        # Кнопка-крестик для UX-скрытия виджета
-        self.resume_close_btn = QPushButton("×", self.resume_panel)
-        self.resume_close_btn.setObjectName("closePanelButton")
+        self.resume_close_btn = QPushButton("×", self.resume_island)
+        self.resume_close_btn.setObjectName("closeIslandButton")
         self.resume_close_btn.setFixedSize(24, 24)
-        self.resume_close_btn.clicked.connect(self.resume_panel.hide)
-        resume_layout.addWidget(self.resume_close_btn)
+        self.resume_close_btn.clicked.connect(self.resume_island.hide)
+        island_layout.addWidget(self.resume_close_btn)
         
-        # Вставляем плашку в макет между экранами и нижней панелью кнопок
-        main_layout.insertWidget(2, self.resume_panel)
-        
-        # Изначально скрываем плашку. Она активируется, если бэкенд найдет историю в БД.
-        self.resume_panel.hide()
+        # Скрываем по умолчанию, пока бэкенд не пришлет команду
+        self.resume_island.hide()
+
+    def resizeEvent(self, event):
+        """
+        Переопределение стандартного метода Qt. 
+        При изменении размеров окна динамически центрирует парящий остров внизу экрана.
+        """
+        super().resizeEvent(event)
+        if self.resume_island.isVisible():
+            self._reposition_resume_island()
+
+    def _reposition_resume_island(self):
+        """Инженерный расчет координат парящего острова."""
+        x = (self.width() - self.resume_island.width()) // 2
+        y = self.height() - self.resume_island.height() - 80 # Вешаем в 80px от нижнего края
+        self.resume_island.move(QPoint(x, y))
 
     def _load_stylesheet(self):
-        """Считывает и компилирует стили из внешнего QSS файла."""
+        """Загрузка QSS-модуля дизайна."""
         qss_path = os.path.join(config.BASE_DIR, "ui", "styles.qss")
         if os.path.exists(qss_path):
             with open(qss_path, "r", encoding="utf-8") as f:
                 self.setStyleSheet(f.read())
-        else:
-            print(f"[UI ПРЕДУПРЕЖДЕНИЕ]: Компонент стилей QSS отсутствует по пути {qss_path}")
-
-    # --- ИНЖЕНЕРНЫЕ СЛОТЫ ДЛЯ ГЕНЕРАЦИИ СОБЫТИЙ (СИГНАЛОВ) ---
-
-    def _on_theme_clicked(self):
-        """Оповещает систему о клике пользователя по кнопке смены темы."""
-        print("[UI ДИАГНОСТИКА]: Нажата кнопка переключения темы оформления.")
-        self.theme_toggle_requested.emit()
 
     def _on_settings_clicked(self):
-        """Переключает активный экран stacked-виджета и генерирует событие."""
-        print("[UI ДИАГНОСТИКА]: Активирован переход на экран настроек.")
-        # Для визуального теста переключаем стопку на индекс 1 (Экран настроек)
         self.screen_stack.setCurrentIndex(1)
         self.settings_opened.emit()
 
     def _on_resume_action_triggered(self):
-        """Передает наверх уникальный ID фильма для инициализации стриминга."""
         if self._current_resume_id is not None:
-            print(f"[UI ДИАГНОСТИКА]: Отправлен запрос на запуск плеера для ID {self._current_resume_id}")
             self.resume_movie_requested.emit(self._current_resume_id)
 
-    # --- ИНТЕРФЕЙС УПРАВЛЕНИЯ СОСТОЯНИЕМ ВИДЖЕТОВ ---
-
     def show_resume_bar(self, movie_id: int, movie_title: str):
-        """
-        Публичный метод. Вызывается кодом связки бэкенда, когда в БД 
-        обнаружен последний незавершенный просмотр.
-        """
+        """Отображает парящий остров и мгновенно пересчитывает его позицию на экране."""
         self._current_resume_id = movie_id
-        self.resume_label.setText(f"Вы остановились на просмотре фильма: <b>{movie_title}</b>")
-        self.resume_panel.show()
+        self.resume_label.setText(f"Продолжить: <b>{movie_title}</b>")
+        self.resume_island.show()
+        self._reposition_resume_island() # Центрируем после показа
+
