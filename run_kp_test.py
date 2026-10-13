@@ -1,35 +1,39 @@
-import requests
+"""
+Официальный проверочный скрипт сетевого слоя Amagi-Player.
+Выполняет GET-запрос к API Кинопоиска Unofficial и верифицирует токен.
+"""
 
-# ВСТАВЬТЕ ВАШ ТОКЕН СЮДА НАПРЯМУЮ ДЛЯ ТЕСТА (без пробелов):
-API_KEY_DIRECT = "ВАШ_РЕАЛЬНЫЙ_ТОКЕН_С_САЙТА"
+import os
+import sys
 
-def run_direct_network_test():
+# Настройка путей поиска локальных модулей Python
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from services.kp_service import KPService
+
+def start_backend_network_test():
     print("=" * 60)
-    print("ПРЯМОЙ ТЕСТ СЕТЕВОГО ЗАПРОСА БЕЗ .ENV")
+    print("ЗАПУСК ОФИЦИАЛЬНОГО ТЕСТА API КИНОПОИСКА UNOFFICIAL")
     print("=" * 60)
+
+    # Инициализация сетевого сервиса
+    kp = KPService()
+    test_id = 44745  # Культовый ID: Иван Васильевич меняет профессию
     
-    url = "https://kinopoiskapiunofficial.tech"
-    headers = {
-        "X-API-KEY": API_KEY_DIRECT,
-        "Content-Type": "application/json"
-    }
+    print(f"Отправка GET-запроса для фильма ID {test_id}...")
+    movie_data = kp.get_movie_data(test_id)
     
-    try:
-        print("Отправка прямого GET-запроса на сервер...")
-        response = requests.get(url, headers=headers, timeout=5)
-        
-        print(f"\n[ОТВЕТ СЕРВЕРА]:")
-        print(f" -> Код статуса: {response.status_code}")
-        print(f" -> Тело ответа: {response.text}")
-        
-        if response.status_code == 200:
-            print("\n УСПЕХ: Сервер принял ключ напрямую! Ключ рабочий.")
-        else:
-            print("\n СБОЙ: Проверьте, точно ли этот токен скопирован из ЛК.")
-            
-    except Exception as e:
-        print(f"\n Ошибка подключения: {e}")
+    print("\n[ОТВЕТ СЕРВЕРА]:")
+    print(f" -> Название контента: {movie_data['title']}")
+    print(f" -> Год производства:  {movie_data['year']}")
+    print(f" -> Локальный кэш .jpg: {movie_data['cover_path']}")
+    
+    # Инженерная проверка скачивания файла на жесткий диск
+    if movie_data['cover_path'] and os.path.exists(movie_data['cover_path']):
+        print("\n СТАТУС: УСПЕХ! Сетевой слой полностью работоспособен.")
+    else:
+        print("\n СТАТУС: СБОЙ. Сервер не отдал картинку. Перепроверьте .env")
     print("=" * 60)
 
 if __name__ == "__main__":
-    run_direct_network_test()
+    start_backend_network_test()
