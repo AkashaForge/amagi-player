@@ -1,112 +1,115 @@
 /* ==============================================================================
-   КИНЕМАТОГРАФИЧНАЯ ДИЗАЙН-СИСТЕМА (ЧИСТЫЙ PyQt6)
+   ДИЗАЙН-СИСТЕМА AMAGI-PLAYER (PREMIUM CINEMATIC DARK)
    ============================================================================== */
 
-/* Главный фон приложения — глубокий угольный черный, как в кинотеатре */
-QMainWindow, QStackedWidget {
-    background-color: #0E0E10;
+/* Главный экран — сложный глубокий фон для создания кинематографичного объема */
+QMainWindow {
+    background-color: #080809;
+}
+
+QStackedWidget, QScrollArea, QWidget#gridContainer {
+    background-color: transparent;
 }
 
 /* --- ВЕРХНЯЯ ШАПКА (HEADER) --- */
 QWidget#headerBar {
-    background-color: #16161A;
-    border-bottom: 1px solid #222227;
+    background-color: rgba(15, 15, 17, 0.7); /* Эффект матового стекла */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04); /* Тончайший разделитель */
 }
 
-/* Строка поиска в стиле Кинопоиска */
+/* Премиальный поисковый блок */
 QLineEdit#searchBar {
-    background-color: #1F1F24;
-    border: 1px solid #2D2D34;
-    border-radius: 10px;
-    padding: 10px 16px;
+    background-color: #131316;
+    border: 1px solid #1F1F24;
+    border-radius: 12px;
+    padding: 12px 18px;
     color: #FFFFFF;
     font-size: 14px;
 }
 QLineEdit#searchBar:focus {
-    border: 1px solid #FF6600; /* Фирменный оранжевый фокус */
-    background-color: #26262C;
+    border: 1px solid #FF5500;
+    background-color: #17171C;
 }
 
-/* --- СЕТКА И КАРТОЧКИ ФИЛЬМОВ --- */
-/* Сама карточка-постер */
+/* --- ИНТЕРАКТИВНЫЕ ПОСТЕРЫ (КАРТОЧКИ) --- */
 QFrame#movieCard {
-    background-color: #16161A;
-    border-radius: 12px;
+    background-color: #131316;
+    border: 1px solid rgba(255, 255, 255, 0.02);
+    border-radius: 16px; /* Более мягкое современное скругление */
 }
 
-/* Заглушка, если нет картинки-обложки */
-QLabel#coverPlaceholder {
-    color: #52525B;
-    background-color: #1F1F24;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 500;
+/* Информационный оверлей внутри постера с градиентом */
+QWidget#cardOverlay {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                      stop:0.2 rgba(0,0,0,0), stop:0.6 rgba(0,0,0,0.6), stop:1 rgba(0,0,0,0.98));
+    border-radius: 16px;
 }
 
-/* Текстовый блок информации поверх постера при наведении */
 QLabel#movieTitle {
     color: #FFFFFF;
-    font-size: 15px;
-    font-weight: bold;
-    background: transparent;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
 }
 QLabel#movieMeta {
-    color: #A1A1AA;
-    font-size: 12px;
-    background: transparent;
-}
-
-/* --- КНОПКИ ДЕЙСТВИЯ --- */
-/* Фирменная оранжевая кнопка «Смотреть» */
-QPushButton#actionButton {
-    background-color: #FF6600;
-    color: #FFFFFF;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 24px;
-    font-weight: 600;
-    font-size: 14px;
-}
-QPushButton#actionButton:hover {
-    background-color: #E05200; /* Слегка темнеет при наведении */
-}
-QPushButton#actionButton:pressed {
-    background-color: #B84300; /* Утапливается при клике */
-}
-
-/* Нижние системные кнопки (Настройки, Тема) */
-QPushButton#sysButton {
-    background-color: #16161A;
-    border: 1px solid #2D2D34;
-    color: #A1A1AA;
-    border-radius: 8px;
-    padding: 8px 16px;
+    color: #71717A;
     font-size: 13px;
     font-weight: 500;
 }
-QPushButton#sysButton:hover {
-    border: 1px solid #4B4B55;
+
+/* --- КНОПКИ (BUTTONS) --- */
+/* Фирменный неоновый оранжевый Кинопоиска */
+QPushButton#actionButton {
+    background-color: #FF5500;
     color: #FFFFFF;
-    background-color: #1F1F24;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 26px;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+}
+QPushButton#actionButton:hover {
+    background-color: #FF6611;
+}
+QPushButton#actionButton:pressed {
+    background-color: #D44400;
 }
 
-/* --- UX-ОСТРОВ «ПРОДОЛЖИТЬ ПРОСМОТР» --- */
+/* Угловые системные кнопки */
+QPushButton#sysButton {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: #94A3B8;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+QPushButton#sysButton:hover {
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #FFFFFF;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* --- ПАРЯЩИЙ ОСТРОВ «ПРОДОЛЖИТЬ ПРОСМОТР» --- */
 QFrame#continueIsland {
-    background-color: #16161A;
-    border: 1px solid #FF6600; /* Тонкий оранжевый контур */
-    border-radius: 20px;
+    background-color: rgba(19, 19, 22, 0.9); /* Премиальное размытое стекло */
+    border: 1px solid rgba(255, 85, 0, 0.4); /* Элегантное оранжевое свечение */
+    border-radius: 25px;
 }
 QFrame#continueIsland QLabel {
-    color: #FFFFFF;
+    color: #E4E4E7;
     font-size: 14px;
+    font-weight: 600;
 }
 QPushButton#closeIslandButton {
     background-color: transparent;
-    color: #71717A;
+    color: #52525B;
     border: none;
-    font-size: 20px;
+    font-size: 22px;
 }
 QPushButton#closeIslandButton:hover {
-    color: #EF4444; /* Крестик краснеет при наведении */
+    color: #EF4444;
 }
 
