@@ -1,104 +1,150 @@
 """
-Модуль кастомного виджета карточки фильма Amagi-Player.
-Реализует кинопостер формата 2:3 с мягкими тенями, скруглениями 
-и динамическим оверлеем информации при наведении мыши на чистом PyQt6.
+Модуль главного графического окна Amagi-Player.
+Реализует дизайн-систему Cinematic Dark, верхнюю панель навигации (Header),
+парящий остров продолжения просмотра и менеджер экранов.
 """
 
-from PyQt6.QtWidgets import QFrame, QLabel, QPushButton, QVBoxLayout, QWidget, QGraphicsDropShadowEffect
-from PyQt6.QtCore import pyqtSignal, Qt
-from PyQt6.QtGui import QPixmap, QColor
+from PyQt6.QtWidgets import (
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
+    QStackedWidget, QPushButton, QLabel, QFrame, QLineEdit
+)
+from PyQt6.QtCore import pyqtSignal, QPoint
 import os
+import config
 
-class MovieCardWidget(QFrame):
+class MainWindow(QMainWindow):
     """
-    Интерактивный постер фильма с эффектом объема и всплывающими метаданными.
+    Главное окно приложения в стиле современных стриминговых медиаплатформ.
     """
-    play_requested = pyqtSignal(int)
+    
+    theme_toggle_requested = pyqtSignal()
+    settings_opened = pyqtSignal()
+    resume_movie_requested = pyqtSignal(int)
 
-    def __init__(self, kp_id: int, title: str, year: str, cover_path: str, parent=None):
-        super().__init__(parent)
-        self.kp_id = kp_id
-        self.title = title
-        self.year = year
-        self.cover_path = cover_path
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Amagi-Player")
+        self.resize(1100, 800)
+        self._current_resume_id = None
         
-        self.setObjectName("movieCard")
-        self.setFixedSize(200, 300) 
-        
-        self._init_card_layout()
-        self._apply_shadow_effect()
+        self._init_ui_core()
+        self._load_stylesheet()
 
-    def _init_card_layout(self):
-        """Собирает внутреннюю геометрию карточки."""
-        # 1. ЗАДНИЙ ПЛАН: ОБЛОЖКА ФИЛЬМА
-        self.cover_label = QLabel(self)
-        self.cover_label.setGeometry(0, 0, 200, 300)
-        self.cover_label.setScaledContents(True)
+    def _init_ui_core(self):
+        """Разворачивает структуру слоев приложения."""
+        central_widget = QWidget(self)
+        self.setCentralWidget(central_widget)
         
-        # Инженерный трюк: заставляем саму картинку скругляться по краям карточки
-        self.cover_label.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        
-        if self.cover_path and os.path.exists(self.cover_path):
-            self.cover_label.setPixmap(QPixmap(self.cover_path))
-        else:
-            self.cover_label.setObjectName("coverPlaceholder")
-            self.cover_label.setText(f"Обложка\\nнедоступна")
-            self.cover_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        base_layout = QVBoxLayout(central_widget)
+        base_layout.setContentsMargins(0, 0, 0, 0)
+        base_layout.setSpacing(0)
 
-        # 2. ПЕРЕДНИЙ ПЛАН: ГРАДИЕНТНЫЙ ИНФО-СЛОЙ
-        self.overlay = QWidget(self)
-        self.overlay.setGeometry(0, 0, 200, 300)
+        # 1. Верхняя панель (Header)
+        self.header_bar = QWidget(central_widget)
+        self.header_bar.setObjectName("headerBar")
+        self.header_bar.setFixedHeight(70)
         
-        # Эстетичный темный кинематографичный градиент
-        self.overlay.setStyleSheet("""
-            QWidget {
-                background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                                  stop:0.1 rgba(0,0,0,0), stop:0.5 rgba(0,0,0,0.5), stop:1 rgba(0,0,0,0.95));
-                border-radius: 12px;
-            }
-        """)
+        header_layout = QHBoxLayout(self.header_bar)
+        header_layout.setContentsMargins(30, 0, 30, 0)
         
-        overlay_layout = QVBoxLayout(self.overlay)
-        overlay_layout.setContentsMargins(15, 15, 15, 15)
-        overlay_layout.addStretch() 
+        logo_label = QLabel("AMAGI", self.header_bar)
+        logo_label.setStyleSheet("color: #FF6600; font-size: 22px; font-weight: 900; letter-spacing: 2px;")
+        header_layout.addWidget(logo_label)
+        header_layout.addSpacing(40)
         
-        # Название фильма
-        self.title_label = QLabel(self.title, self.overlay)
-        self.title_label.setObjectName("movieTitle")
-        self.title_label.setWordWrap(True)
-        overlay_layout.addWidget(self.title_label)
+        self.search_bar = QLineEdit(self.header_bar)
+        self.search_bar.setObjectName("searchBar")
+        self.search_bar.setPlaceholderText("Поиск по легальному некоммерческому фонду...")
+        self.search_bar.setFixedWidth(450)
+        header_layout.addWidget(self.search_bar)
         
-        # Год выпуска
-        self.meta_label = QLabel(f"{self.year} год", self.overlay)
-        self.meta_label.setObjectName("movieMeta")
-        overlay_layout.addWidget(self.meta_label)
-        
-        overlay_layout.addSpacing(8)
-        
-        # Кнопка «Смотреть»
-        self.watch_btn = QPushButton("Смотреть", self.overlay)
-        self.watch_btn.setObjectName("actionButton")
-        self.watch_btn.setFixedHeight(34)
-        self.watch_btn.clicked.connect(self.watch_btn.hide) # Временный визуальный клик
-        overlay_layout.addWidget(self.watch_btn)
-        
-        # Прячем информацию по умолчанию (концепция чистой ленты постеров)
-        self.overlay.hide()
+        header_layout.addStretch()
+        base_layout.addWidget(self.header_bar)
 
-    def _apply_shadow_effect(self):
-        """Создает мягкую размытую тень вокруг карточки на чистом PyQt6."""
-        shadow = QGraphicsDropShadowEffect(self)
-        shadow.setBlurRadius(15)                      # Радиус размытия тени
-        shadow.setColor(QColor(0, 0, 0, 180))         # Мягкий черный цвет с прозрачностью
-        shadow.setOffset(0, 4)                        # Сдвиг тени чуть вниз для эффекта парения
-        self.setGraphicsEffect(shadow)
+        # 2. Рабочая зона
+        content_wrapper = QWidget(central_widget)
+        content_layout = QVBoxLayout(content_wrapper)
+        content_layout.setContentsMargins(30, 20, 30, 20)
+        content_layout.setSpacing(15)
 
-    # --- ТРИГГЕРЫ НАВЕДЕНИЯ МЫШИ ---
-    def enterEvent(self, event):
-        super().enterEvent(event)
-        self.overlay.show() # Проявляем текст и кнопку при наведении
+        self.screen_stack = QStackedWidget(content_wrapper)
+        self.feed_page_placeholder = QWidget()
+        self.settings_page_placeholder = QWidget()
+        self.screen_stack.addWidget(self.feed_page_placeholder)
+        self.screen_stack.addWidget(self.settings_page_placeholder)
+        content_layout.addWidget(self.screen_stack)
 
-    def leaveEvent(self, event):
-        super().leaveEvent(event)
-        self.overlay.hide() # Скрываем, когда мышь ушла
+        # Нижняя системная панель
+        bottom_bar = QWidget(content_wrapper)
+        bottom_layout = QHBoxLayout(bottom_bar)
+        bottom_layout.setContentsMargins(0, 0, 0, 0)
+        bottom_layout.addStretch()
+        
+        self.theme_btn = QPushButton("Сменить тему", bottom_bar)
+        self.theme_btn.setObjectName("sysButton")
+        bottom_layout.addWidget(self.theme_btn)
+        
+        self.settings_btn = QPushButton("Настройки", bottom_bar)
+        self.settings_btn.setObjectName("sysButton")
+        self.settings_btn.clicked.connect(self._on_settings_clicked)
+        bottom_layout.addWidget(self.settings_btn)
+        
+        content_layout.addWidget(bottom_bar)
+        base_layout.addWidget(content_wrapper)
+
+        # 3. Парящий остров истории
+        self.resume_island = QFrame(central_widget)
+        self.resume_island.setObjectName("continueIsland")
+        self.resume_island.setFixedSize(550, 50)
+        
+        island_layout = QHBoxLayout(self.resume_island)
+        island_layout.setContentsMargins(20, 0, 15, 0)
+        
+        self.resume_label = QLabel("Продолжить просмотр: ...", self.resume_island)
+        island_layout.addWidget(self.resume_label)
+        island_layout.addStretch()
+        
+        self.resume_action_btn = QPushButton("Смотреть", self.resume_island)
+        self.resume_action_btn.setObjectName("actionButton")
+        self.resume_action_btn.setFixedHeight(32)
+        self.resume_action_btn.clicked.connect(self._on_resume_action_triggered)
+        island_layout.addWidget(self.resume_action_btn)
+        
+        self.resume_close_btn = QPushButton("×", self.resume_island)
+        self.resume_close_btn.setObjectName("closeIslandButton")
+        self.resume_close_btn.setFixedSize(24, 24)
+        self.resume_close_btn.clicked.connect(self.resume_island.hide)
+        island_layout.addWidget(self.resume_close_btn)
+        
+        self.resume_island.hide()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if self.resume_island.isVisible():
+            self._reposition_resume_island()
+
+    def _reposition_resume_island(self):
+        x = (self.width() - self.resume_island.width()) // 2
+        y = self.height() - self.resume_island.height() - 80
+        self.resume_island.move(QPoint(x, y))
+
+    def _load_stylesheet(self):
+        qss_path = os.path.join(config.BASE_DIR, "ui", "styles.qss")
+        if os.path.exists(qss_path):
+            with open(qss_path, "r", encoding="utf-8") as f:
+                self.setStyleSheet(f.read())
+
+    def _on_settings_clicked(self):
+        self.screen_stack.setCurrentIndex(1)
+        self.settings_opened.emit()
+
+    def _on_resume_action_triggered(self):
+        if self._current_resume_id is not None:
+            self.resume_movie_requested.emit(self._current_resume_id)
+
+    def show_resume_bar(self, movie_id: int, movie_title: str):
+        self._current_resume_id = movie_id
+        self.resume_label.setText(f"Продолжить: <b>{movie_title}</b>")
+        self.resume_island.show()
+        self._reposition_resume_island()
 
