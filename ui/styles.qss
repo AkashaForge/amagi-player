@@ -84,26 +84,42 @@ QPushButton#sysButton:hover {
     background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* --- ПАРЯЩИЙ ОСТРОВ «ПРОДОЛЖИТЬ ПРОСМОТР» (LIQUID GLASS) --- */
+/* --- ПАРЯЩИЙ ОСТРОВ «ПРОДОЛЖИТЬ ПРОСМОТР» (LIQUID GLASS 2.0) --- */
 QFrame#continueIsland {
-    background-color: rgba(255, 255, 255, 0.05); /* Ультра-прозрачное жидкое стекло */
-    border: 1px solid rgba(255, 255, 255, 0.15);  /* Едва заметный ледяной контур */
-    border-radius: 12px;                          /* Строгая современная геометрия */
+    background-color: rgba(255, 255, 255, 0.04); /* Ультра-прозрачное жидкое стекло */
+    border: 1px solid rgba(255, 255, 255, 0.12);  /* Ледяной контур */
+    border-radius: 16px;                          /* Строгая современная геометрия */
 }
 QFrame#continueIsland QLabel {
     color: #FFFFFF;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 11px;
+    font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
 }
+/* Монолитная белая кнопка с текстом "ПРОДОЛЖИТЬ ПРОСМОТР" */
+QPushButton#islandActionButton {
+    background-color: #FFFFFF;
+    color: #000000;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 16px;
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+QPushButton#islandActionButton:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+}
 QPushButton#closeIslandButton {
     background-color: transparent;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.3);
     border: none;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 300;
 }
 QPushButton#closeIslandButton:hover {
     color: #FFFFFF;
 }
+
