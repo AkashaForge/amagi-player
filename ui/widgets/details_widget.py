@@ -102,7 +102,8 @@ class MovieDetailsWidget(QWidget):
         if cover_path and os.path.exists(cover_path):
             self.big_cover.setPixmap(QPixmap(cover_path))
         else:
-            self.big_cover.setText("ОБЛОЖКА\\nНЕДОСТУПНА")
+            # ИСПРАВЛЕНО: Один обратный слэш для корректного переноса строки в QLabel
+            self.big_cover.setText("ОБЛОЖКА\nНЕДОСТУПНА")
 
     def _on_play_clicked(self):
         """Транслирует клик запуска в ядро архитектуры."""

@@ -127,11 +127,20 @@ class MainWindow(QMainWindow):
         self.resume_action_btn.clicked.connect(self._on_resume_action_triggered)
         island_layout.addWidget(self.resume_action_btn)
         
-        self.resume_close_btn = QPushButton("×", self.resume_island)
+        # ... (ваш код инициализации island_layout)
+        self.resume_action_btn.clicked.connect(self._on_resume_action_triggered)
+        island_layout.addWidget(self.resume_action_btn)
+        
+        # ИСПРАВЛЕНИЕ: Передаем родителем сам остров, но НЕ добавляем в layout,
+        # чтобы move() работал корректно относительно границ плашки
+        self.resume_close_btn = QPushButton("×", self.resume_island) 
         self.resume_close_btn.setObjectName("closeIslandButton")
         self.resume_close_btn.setFixedSize(20, 20)
-        self.resume_close_btn.move(395, 5)
+        self.resume_close_btn.move(395, 5) # Теперь позиционирование сработает жестко
         self.resume_close_btn.clicked.connect(self.resume_island.hide)
+        
+        self.resume_island.hide()
+
         
         self.resume_island.hide()
 

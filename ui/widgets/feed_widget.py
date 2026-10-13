@@ -4,7 +4,7 @@
 для адаптивной сетки кинопостеров в стиле OLED-минимализма.
 """
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QScrollArea, QGridLayout
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QScrollArea, QGridLayout, QFrame
 from PyQt6.QtCore import Qt
 
 class MovieFeedWidget(QWidget):
@@ -38,7 +38,9 @@ class MovieFeedWidget(QWidget):
         # 2. ОБЛАСТЬ ПРОКРУТКИ С КИНЕМАТОГРАФИЧНЫМ СКРОЛЛОМ
         self.scroll_area = QScrollArea(self)
         self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setFrameShape(QScrollArea.FrameShape.NoFrame) # Убираем рамки скролла
+        
+        # ИСПРАВЛЕНО: Правильное обращение к перечислению Shape в PyQt6
+        self.scroll_area.setFrameShape(QFrame.Shape.NoFrame)
         
         # Полностью скрываем убогий системный скроллбар Windows/Linux через QSS
         self.scroll_area.setStyleSheet("""
@@ -67,6 +69,7 @@ class MovieFeedWidget(QWidget):
         row = index // 4
         col = index % 4
         self.grid_layout.addWidget(card_widget, row, col)
+
     def clear_grid(self):
         """Удаляет все карточки из сетки перед новым выводом или поиском."""
         while self.grid_layout.count():
@@ -74,4 +77,3 @@ class MovieFeedWidget(QWidget):
             widget = item.widget()
             if widget is not None:
                 widget.deleteLater()
-
