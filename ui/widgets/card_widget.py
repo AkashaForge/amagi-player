@@ -77,10 +77,9 @@ class MovieCardWidget(QWidget):
         layout.addWidget(self.year_label)
         
         layout.addStretch()
-
     def mousePressEvent(self, event):
         """Перехватываем клик мыши по любой точке карточки"""
         if event.button() == Qt.MouseButton.LeftButton:
-            # Отправляем ID фильма в run_ui_test.py
             self.play_requested.emit(self.kp_id)
-        super().mousePressEvent(event)
+        # Обязательно передаем родителю, чтобы QScrollArea корректно обрабатывал жесты/клики
+        super().mousePressEvent(event) 
