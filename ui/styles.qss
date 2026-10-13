@@ -1,115 +1,109 @@
 /* ==============================================================================
-   ДИЗАЙН-СИСТЕМА AMAGI-PLAYER (PREMIUM CINEMATIC DARK)
+   ДИЗАЙН-СИСТЕМА AMAGI-PLAYER (PREMIUM OLED MINIMALISM)
    ============================================================================== */
 
-/* Главный экран — сложный глубокий фон для создания кинематографичного объема */
-QMainWindow {
-    background-color: #080809;
+/* Базовый системный шрифт — строгий, дорогой без засечек (как на логотипе) */
+* {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-QStackedWidget, QScrollArea, QWidget#gridContainer {
-    background-color: transparent;
+/* Абсолютный OLED-черный фон для бесконечного контраста */
+QMainWindow, QStackedWidget, QScrollArea, QWidget#gridContainer {
+    background-color: #000000;
 }
 
 /* --- ВЕРХНЯЯ ШАПКА (HEADER) --- */
 QWidget#headerBar {
-    background-color: rgba(15, 15, 17, 0.7); /* Эффект матового стекла */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04); /* Тончайший разделитель */
+    background-color: #000000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* Тончайшая белая нить-разделитель */
 }
 
-/* Премиальный поисковый блок */
+/* Поисковая строка в дорогой белой рамке */
 QLineEdit#searchBar {
-    background-color: #131316;
-    border: 1px solid #1F1F24;
-    border-radius: 12px;
-    padding: 12px 18px;
+    background-color: #000000;
+    border: 1px solid rgba(255, 255, 255, 0.25); /* Строгая благородная белая рамка */
+    border-radius: 8px; /* Чуть более строгие углы вместо круглых */
+    padding: 10px 16px;
     color: #FFFFFF;
-    font-size: 14px;
+    font-size: 13px;
+    letter-spacing: 1px;
 }
 QLineEdit#searchBar:focus {
-    border: 1px solid #FF5500;
-    background-color: #17171C;
+    border: 1px solid #FFFFFF; /* Рамка вспыхивает чистым белым при клике */
+    background-color: #050505;
 }
 
-/* --- ИНТЕРАКТИВНЫЕ ПОСТЕРЫ (КАРТОЧКИ) --- */
-QFrame#movieCard {
-    background-color: #131316;
-    border: 1px solid rgba(255, 255, 255, 0.02);
-    border-radius: 16px; /* Более мягкое современное скругление */
+/* --- ТЕКСТОВЫЕ БЛОКИ (ПАФОСНЫЙ БЕЛЫЙ ШРИФТ AMAGI) --- */
+QLabel#logoLabel {
+    color: #FFFFFF; 
+    font-size: 22px; 
+    font-weight: 900; 
+    letter-spacing: 6px; /* Разреженный пафосный стиль */
 }
 
-/* Информационный оверлей внутри постера с градиентом */
-QWidget#cardOverlay {
-    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                      stop:0.2 rgba(0,0,0,0), stop:0.6 rgba(0,0,0,0.6), stop:1 rgba(0,0,0,0.98));
-    border-radius: 16px;
-}
-
-QLabel#movieTitle {
+QLabel#sectionTitle {
     color: #FFFFFF;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
-    letter-spacing: 0.3px;
-}
-QLabel#movieMeta {
-    color: #71717A;
-    font-size: 13px;
-    font-weight: 500;
+    letter-spacing: 3px; /* Дублируем пафосный стиль логотипа на заголовки */
+    text-transform: uppercase; /* Всегда заглавные */
 }
 
-/* --- КНОПКИ (BUTTONS) --- */
-/* Фирменный неоновый оранжевый Кинопоиска */
+/* --- КНОПКИ ДЕЙСТВИЯ --- */
+/* Монолитная белая кнопка «Смотреть» для острова */
 QPushButton#actionButton {
-    background-color: #FF5500;
-    color: #FFFFFF;
+    background-color: #FFFFFF;
+    color: #000000;
     border: none;
-    border-radius: 12px;
-    padding: 12px 26px;
+    border-radius: 6px;
+    padding: 10px 22px;
     font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 0.5px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
 }
 QPushButton#actionButton:hover {
-    background-color: #FF6611;
-}
-QPushButton#actionButton:pressed {
-    background-color: #D44400;
+    background-color: rgba(255, 255, 255, 0.9);
 }
 
-/* Угловые системные кнопки */
+/* Тонкие прозрачные системные кнопки */
 QPushButton#sysButton {
-    background-color: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    color: #94A3B8;
-    border-radius: 10px;
-    padding: 10px 20px;
-    font-size: 13px;
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.6);
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 11px;
     font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
 }
 QPushButton#sysButton:hover {
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid #FFFFFF;
     color: #FFFFFF;
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* --- ПАРЯЩИЙ ОСТРОВ «ПРОДОЛЖИТЬ ПРОСМОТР» --- */
+/* --- ПАРЯЩИЙ ОСТРОВ «ПРОДОЛЖИТЬ ПРОСМОТР» (LIQUID GLASS) --- */
 QFrame#continueIsland {
-    background-color: rgba(19, 19, 22, 0.9); /* Премиальное размытое стекло */
-    border: 1px solid rgba(255, 85, 0, 0.4); /* Элегантное оранжевое свечение */
-    border-radius: 25px;
+    background-color: rgba(255, 255, 255, 0.05); /* Ультра-прозрачное жидкое стекло */
+    border: 1px solid rgba(255, 255, 255, 0.15);  /* Едва заметный ледяной контур */
+    border-radius: 12px;                          /* Строгая современная геометрия */
 }
 QFrame#continueIsland QLabel {
-    color: #E4E4E7;
-    font-size: 14px;
+    color: #FFFFFF;
+    font-size: 12px;
     font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
 }
 QPushButton#closeIslandButton {
     background-color: transparent;
-    color: #52525B;
+    color: rgba(255, 255, 255, 0.4);
     border: none;
-    font-size: 22px;
+    font-size: 18px;
+    font-weight: 300;
 }
 QPushButton#closeIslandButton:hover {
-    color: #EF4444;
+    color: #FFFFFF;
 }
-
