@@ -3,6 +3,8 @@
 Реализует премиальную дизайн-систему OLED Minimalism с вертикальным 
 двухуровневым островом истории Liquid Glass 2.0.
 """
+from ui.widgets.details_widget import MovieDetailsWidget
+from ui.widgets.player_widget import MoviePlayerWidget
 
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
