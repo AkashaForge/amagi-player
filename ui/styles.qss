@@ -1,78 +1,83 @@
 /* ==============================================================================
-   ДИЗАЙН-СИСТЕМА AMAGI-PLAYER (СТИЛЬ КИНОПОИСК CINEMATIC DARK)
+   КИНЕМАТОГРАФИЧНАЯ ДИЗАЙН-СИСТЕМА (ЧИСТЫЙ PyQt6)
    ============================================================================== */
 
-/* Главный фон приложения — глубокий угольный черный */
+/* Главный фон приложения — глубокий угольный черный, как в кинотеатре */
 QMainWindow, QStackedWidget {
-    background-color: #0B0B0C;
+    background-color: #0E0E10;
 }
 
 /* --- ВЕРХНЯЯ ШАПКА (HEADER) --- */
 QWidget#headerBar {
-    background-color: #121214;
-    border-bottom: 1px solid #1A1A1D;
+    background-color: #16161A;
+    border-bottom: 1px solid #222227;
 }
 
-/* Премиальная поисковая строка Кинопоиска */
+/* Строка поиска в стиле Кинопоиска */
 QLineEdit#searchBar {
-    background-color: #1A1A1D;
-    border: 1px solid #26262B;
-    border-radius: 12px;
+    background-color: #1F1F24;
+    border: 1px solid #2D2D34;
+    border-radius: 10px;
     padding: 10px 16px;
     color: #FFFFFF;
     font-size: 14px;
-    font-weight: 400;
 }
 QLineEdit#searchBar:focus {
-    border: 1px solid #FF6600; /* Неоново-оранжевый фокус Кинопоиска */
-    background-color: #222226;
+    border: 1px solid #FF6600; /* Фирменный оранжевый фокус */
+    background-color: #26262C;
 }
 
-/* --- КАРТОЧКА ФИЛЬМА (POSTER CARD) --- */
+/* --- СЕТКА И КАРТОЧКИ ФИЛЬМОВ --- */
+/* Сама карточка-постер */
 QFrame#movieCard {
-    background-color: #121214;
-    border: 1px solid #1A1A1D;
+    background-color: #16161A;
     border-radius: 12px;
 }
-/* Эффект наведения на карточку (Оживающий интерфейс) */
-QFrame#movieCard:hover {
-    border: 1px solid #FF6600;
-    background-color: #1A1A1D;
+
+/* Заглушка, если нет картинки-обложки */
+QLabel#coverPlaceholder {
+    color: #52525B;
+    background-color: #1F1F24;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
 }
 
-/* Текстовые блоки внутри карточки при наведении */
+/* Текстовый блок информации поверх постера при наведении */
 QLabel#movieTitle {
     color: #FFFFFF;
     font-size: 15px;
     font-weight: bold;
+    background: transparent;
 }
 QLabel#movieMeta {
-    color: #8A8A93;
+    color: #A1A1AA;
     font-size: 12px;
+    background: transparent;
 }
 
-/* --- КНОПКИ ДЕЙСТВИЯ (ACTIONS) --- */
+/* --- КНОПКИ ДЕЙСТВИЯ --- */
 /* Фирменная оранжевая кнопка «Смотреть» */
 QPushButton#actionButton {
     background-color: #FF6600;
     color: #FFFFFF;
     border: none;
-    border-radius: 10px;
+    border-radius: 8px;
     padding: 10px 24px;
     font-weight: 600;
     font-size: 14px;
 }
 QPushButton#actionButton:hover {
-    background-color: #E05600;
+    background-color: #E05200; /* Слегка темнеет при наведении */
 }
 QPushButton#actionButton:pressed {
-    background-color: #B84600;
+    background-color: #B84300; /* Утапливается при клике */
 }
 
-/* Маленькие угловые системные кнопки */
+/* Нижние системные кнопки (Настройки, Тема) */
 QPushButton#sysButton {
-    background-color: #1A1A1D;
-    border: 1px solid #26262B;
+    background-color: #16161A;
+    border: 1px solid #2D2D34;
     color: #A1A1AA;
     border-radius: 8px;
     padding: 8px 16px;
@@ -80,30 +85,28 @@ QPushButton#sysButton {
     font-weight: 500;
 }
 QPushButton#sysButton:hover {
-    border: 1px solid #3F3F46;
+    border: 1px solid #4B4B55;
     color: #FFFFFF;
-    background-color: #222226;
+    background-color: #1F1F24;
 }
 
 /* --- UX-ОСТРОВ «ПРОДОЛЖИТЬ ПРОСМОТР» --- */
-/* Изящный парящий остров вместо врезанной полосы */
 QFrame#continueIsland {
-    background-color: #121214;
-    border: 2px solid #FF6600; /* Оранжевый контур акцента */
-    border-radius: 25px;       /* Ультра-округлые края */
+    background-color: #16161A;
+    border: 1px solid #FF6600; /* Тонкий оранжевый контур */
+    border-radius: 20px;
 }
 QFrame#continueIsland QLabel {
     color: #FFFFFF;
     font-size: 14px;
-    font-weight: 500;
 }
 QPushButton#closeIslandButton {
     background-color: transparent;
     color: #71717A;
     border: none;
     font-size: 20px;
-    font-weight: 300;
 }
 QPushButton#closeIslandButton:hover {
-    color: #EF4444; /* Красный крестик при наведении */
+    color: #EF4444; /* Крестик краснеет при наведении */
 }
+
