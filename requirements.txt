@@ -1,0 +1,5 @@
+PyQt6==6.7.1
+qbittorrent-api==2024.12.59
+requests==2.32.3
+python-dotenv==1.0.1
+psutil==6.1.1
