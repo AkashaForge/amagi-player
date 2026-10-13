@@ -1,72 +1,109 @@
 /* ==============================================================================
-   ТАБЛИЦА СТИЛЕЙ ИНТЕРФЕЙСА AMAGI-PLAYER
+   ДИЗАЙН-СИСТЕМА AMAGI-PLAYER (СТИЛЬ КИНОПОИСК CINEMATIC DARK)
    ============================================================================== */
 
-/* Базовый фон окон и stacked-контейнера по умолчанию (темный) */
+/* Главный фон приложения — глубокий угольный черный */
 QMainWindow, QStackedWidget {
-    background-color: #121212;
+    background-color: #0B0B0C;
 }
 
-/* Полупрозрачная парящая строка поиска с округлыми рамками */
+/* --- ВЕРХНЯЯ ШАПКА (HEADER) --- */
+QWidget#headerBar {
+    background-color: #121214;
+    border-bottom: 1px solid #1A1A1D;
+}
+
+/* Премиальная поисковая строка Кинопоиска */
 QLineEdit#searchBar {
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 15px;
-    padding: 8px 15px;
+    background-color: #1A1A1D;
+    border: 1px solid #26262B;
+    border-radius: 12px;
+    padding: 10px 16px;
     color: #FFFFFF;
     font-size: 14px;
+    font-weight: 400;
 }
 QLineEdit#searchBar:focus {
-    border: 1px solid #FF6B00; /* Оранжевая рамка при фокусе */
-    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid #FF6600; /* Неоново-оранжевый фокус Кинопоиска */
+    background-color: #222226;
 }
 
-/* Главная оранжевая кнопка «Смотреть» */
+/* --- КАРТОЧКА ФИЛЬМА (POSTER CARD) --- */
+QFrame#movieCard {
+    background-color: #121214;
+    border: 1px solid #1A1A1D;
+    border-radius: 12px;
+}
+/* Эффект наведения на карточку (Оживающий интерфейс) */
+QFrame#movieCard:hover {
+    border: 1px solid #FF6600;
+    background-color: #1A1A1D;
+}
+
+/* Текстовые блоки внутри карточки при наведении */
+QLabel#movieTitle {
+    color: #FFFFFF;
+    font-size: 15px;
+    font-weight: bold;
+}
+QLabel#movieMeta {
+    color: #8A8A93;
+    font-size: 12px;
+}
+
+/* --- КНОПКИ ДЕЙСТВИЯ (ACTIONS) --- */
+/* Фирменная оранжевая кнопка «Смотреть» */
 QPushButton#actionButton {
-    background-color: #FF6B00;
+    background-color: #FF6600;
     color: #FFFFFF;
     border: none;
-    border-radius: 8px;
-    padding: 10px 20px;
-    font-weight: bold;
+    border-radius: 10px;
+    padding: 10px 24px;
+    font-weight: 600;
     font-size: 14px;
 }
 QPushButton#actionButton:hover {
-    background-color: #E05E00;
+    background-color: #E05600;
+}
+QPushButton#actionButton:pressed {
+    background-color: #B84600;
 }
 
-/* Системные угловые кнопки (Настройки, Тема) */
+/* Маленькие угловые системные кнопки */
 QPushButton#sysButton {
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #E0E0E0;
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 12px;
+    background-color: #1A1A1D;
+    border: 1px solid #26262B;
+    color: #A1A1AA;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
 }
 QPushButton#sysButton:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-}
-
-/* Округлая ненавязчивая плашка «Продолжить просмотр» внизу */
-QFrame#continuePanel {
-    background-color: rgba(30, 30, 30, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-}
-QFrame#continuePanel QLabel {
+    border: 1px solid #3F3F46;
     color: #FFFFFF;
-    font-size: 13px;
+    background-color: #222226;
 }
 
-/* Кнопка-крестик закрытия нижней плашки */
-QPushButton#closePanelButton {
+/* --- UX-ОСТРОВ «ПРОДОЛЖИТЬ ПРОСМОТР» --- */
+/* Изящный парящий остров вместо врезанной полосы */
+QFrame#continueIsland {
+    background-color: #121214;
+    border: 2px solid #FF6600; /* Оранжевый контур акцента */
+    border-radius: 25px;       /* Ультра-округлые края */
+}
+QFrame#continueIsland QLabel {
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 500;
+}
+QPushButton#closeIslandButton {
     background-color: transparent;
-    color: #888888;
+    color: #71717A;
     border: none;
-    font-size: 16px;
-    font-weight: bold;
+    font-size: 20px;
+    font-weight: 300;
 }
-QPushButton#closePanelButton:hover {
-    color: #FFFFFF;
+QPushButton#closeIslandButton:hover {
+    color: #EF4444; /* Красный крестик при наведении */
 }
