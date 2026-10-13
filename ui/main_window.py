@@ -3,6 +3,8 @@
 Реализует премиальную дизайн-систему OLED Minimalism с вертикальным 
 двухуровневым островом истории Liquid Glass 2.0.
 """
+# СТРОГО ПО ТЗ: Импортируем все три необходимых виджета
+from ui.widgets.feed_widget import MovieFeedWidget
 from ui.widgets.details_widget import MovieDetailsWidget
 from ui.widgets.player_widget import MoviePlayerWidget
 
@@ -10,7 +12,7 @@ from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QStackedWidget, QPushButton, QLabel, QFrame, QLineEdit
 )
-from PyQt6.QtCore import pyqtSignal, QPoint
+from PyQt6.QtCore import pyqtSignal, QPoint, Qt  # Добавлен Qt для выравнивания текста
 import os
 import config
 
@@ -72,10 +74,19 @@ class MainWindow(QMainWindow):
 
         # Стек экранов
         self.screen_stack = QStackedWidget(content_wrapper)
-        self.feed_page_placeholder = QWidget()
-        self.settings_page_placeholder = QWidget()
-        self.screen_stack.addWidget(self.feed_page_placeholder)
-        self.screen_stack.addWidget(self.settings_page_placeholder)
+        
+        # ЧТО ДОПИСАНО: Инициализируем полноценные страницы согласно run_ui_test.py
+        self.feed_page = MovieFeedWidget(content_wrapper)
+        self.details_page = MovieDetailsWidget(content_wrapper)
+        self.player_page = MoviePlayerWidget(content_wrapper)
+        self.settings_page_placeholder = QWidget() # Оставляем заглушку настроек
+        
+        # Добавляем страницы в стек управления (Порядок индексов: 0, 1, 2, 3)
+        self.screen_stack.addWidget(self.feed_page)                # Индекс 0
+        self.screen_stack.addWidget(self.details_page)             # Индекс 1
+        self.screen_stack.addWidget(self.player_page)              # Индекс 2
+        self.screen_stack.addWidget(self.settings_page_placeholder) # Индекс 3
+        
         content_layout.addWidget(self.screen_stack)
 
         # Нижняя системная панель кнопок
@@ -99,31 +110,27 @@ class MainWindow(QMainWindow):
         # 3. ПАРЯЩИЙ ОСТРОВ ИСТОРИИ (ВЕРТИКАЛЬНЫЙ LIQUID GLASS 2.0)
         self.resume_island = QFrame(central_widget)
         self.resume_island.setObjectName("continueIsland")
-        self.resume_island.setFixedSize(420, 96) # Компактный вертикальный остров-карточка
+        self.resume_island.setFixedSize(420, 96)
         
-        # Используем Вертикальный Layout, чтобы выстроить текст над кнопкой
         island_layout = QVBoxLayout(self.resume_island)
         island_layout.setContentsMargins(20, 15, 20, 15)
         island_layout.setSpacing(10)
         
-        # Верхний уровень: Название фильма (белый пафосный текст)
         self.resume_label = QLabel("НАЗВАНИЕ ФИЛЬМА...", self.resume_island)
-        self.resume_label.setAlignment(Qt.AlignmentFlag.AlignCenter) # Центрируем текст
-        self.resume_label.setWordWrap(True) # На случай длинных названий
+        self.resume_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.resume_label.setWordWrap(True)
         island_layout.addWidget(self.resume_label)
         
-        # Нижний уровень: Кнопка действия "ПРОДОЛЖИТЬ ПРОСМОТР"
         self.resume_action_btn = QPushButton("Продолжить просмотр", self.resume_island)
         self.resume_action_btn.setObjectName("islandActionButton")
         self.resume_action_btn.setFixedHeight(32)
         self.resume_action_btn.clicked.connect(self._on_resume_action_triggered)
         island_layout.addWidget(self.resume_action_btn)
         
-        # Абсолютно позиционированный крестик в правом верхнем углу
         self.resume_close_btn = QPushButton("×", self.resume_island)
         self.resume_close_btn.setObjectName("closeIslandButton")
         self.resume_close_btn.setFixedSize(20, 20)
-        self.resume_close_btn.move(395, 5) # Сдвигаем в самый угол плашки
+        self.resume_close_btn.move(395, 5)
         self.resume_close_btn.clicked.connect(self.resume_island.hide)
         
         self.resume_island.hide()
@@ -147,7 +154,7 @@ class MainWindow(QMainWindow):
                 self.setStyleSheet(f.read())
 
     def _on_settings_clicked(self):
-        self.screen_stack.setCurrentIndex(1)
+        self.screen_stack.setCurrentIndex(3)  # Индекс изменен на 3, так как 1 и 2 заняты деталями и плеером
         self.settings_opened.emit()
 
     def _on_resume_action_triggered(self):
@@ -157,7 +164,6 @@ class MainWindow(QMainWindow):
     def show_resume_bar(self, movie_id: int, movie_title: str):
         """Отображает обновленный двухуровневый остров."""
         self._current_resume_id = movie_id
-        # Выводим название фильма крупным пафосным шрифтом в верхнем регистре
         self.resume_label.setText(f"<b>{movie_title.upper()}</b>")
         self.resume_island.show()
         self._reposition_resume_island()
