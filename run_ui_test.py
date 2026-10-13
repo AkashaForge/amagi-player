@@ -25,10 +25,10 @@ def run_integrated_ui_test():
         # Наполняем экран описания реальными данными из вашего сервиса kp_service
         window.details_page.set_movie_context(
             kp_id=kp_id,
-            title=data["title"],
-            year=data["year"],
-            description="Культурное наследие фонда общественного достояния. Документальные архивы и некоммерческий кинематограф.",
-            cover_path=data["cover_path"]
+            title=data.get("title", "Без названия"),
+            year=data.get("year", "----"),
+            description=data.get("description", "Описание недоступно."),
+            cover_path=data.get("cover_path", "")
         )
         # Переключаем стек на индекс 1 (Экран деталей фильма)
         window.screen_stack.setCurrentIndex(1)
@@ -47,8 +47,18 @@ def run_integrated_ui_test():
     window.details_page.back_to_feed_requested.connect(on_back_to_feed)
     window.player_page.close_player_requested.connect(lambda secs: on_back_to_feed())
 
-    # Генерируем тестовую сетку фильмов (Берем ваши тестовые ID)
-    whitelist_mock_ids = [44745, 42664, 582144, 462244] * 2
+    # ИСПРАВЛЕНО: Список из 8 культовых реальных фильмов для полноценного теста UI
+    whitelist_mock_ids = [
+        326,    # Побег из Шоушенка (1994)
+        435,    # Зеленая миля (1999)
+        342,    # Криминальное чтиво (1994)
+        448,    # Форрест Гамп (1994)
+        258687, # Интерстеллар (2014)
+        329,    # Леон (1994)
+        361,    # Бойцовский клуб (1999)
+        423     # Пятый элемент (1997)
+    ]
+    
     feed_widget.clear_grid() # Чистим сетку перед заполнением
     
     for index, kp_id in enumerate(whitelist_mock_ids):
@@ -70,4 +80,3 @@ def run_integrated_ui_test():
 # Главная точка входа, которая принудительно заставит скрипт выполниться
 if __name__ == "__main__":
     run_integrated_ui_test()
-
