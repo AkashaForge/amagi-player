@@ -1,39 +1,35 @@
-"""
-Исполнительный скрипт изолированного тестирования сетевого слоя Кинопоиска.
-"""
+import requests
 
-import os
-import sys
+# ВСТАВЬТЕ ВАШ ТОКЕН СЮДА НАПРЯМУЮ ДЛЯ ТЕСТА (без пробелов):
+API_KEY_DIRECT = "ВАШ_РЕАЛЬНЫЙ_ТОКЕН_С_САЙТА"
 
-# Прописываем пути, чтобы Python не ругался на локальные импорты модуля services
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-from services.kp_service import KPService
-
-def start_backend_network_test():
+def run_direct_network_test():
     print("=" * 60)
-    print("ТЕСТ СЕТЕВОГО СЛУЖЕБНОГО МОДУЛЯ КИНОПОИСКА Unofficial")
+    print("ПРЯМОЙ ТЕСТ СЕТЕВОГО ЗАПРОСА БЕЗ .ENV")
     print("=" * 60)
-
-    # Инициализируем созданный сервис
-    kp = KPService()
-    test_id = 44745
     
-    print(f"Отправляем запрос к API для ID {test_id}...")
-    movie_data = kp.get_movie_data(test_id)
+    url = "https://kinopoiskapiunofficial.tech"
+    headers = {
+        "X-API-KEY": API_KEY_DIRECT,
+        "Content-Type": "application/json"
+    }
     
-    print("\n[РЕЗУЛЬТАТ ОТВЕТА СЕРВЕРА]:")
-    print(f" -> Название фильма: {movie_data['title']}")
-    print(f" -> Год производства: {movie_data['year']}")
-    print(f" -> Путь к сохраненной картинке: {movie_data['cover_path']}")
-    
-    # Проверяем, физически ли файл скачался на жесткий диск вашего ПК в data/cache/
-    if movie_data['cover_path'] and os.path.exists(movie_data['cover_path']):
-        print("\n УСПЕХ: Бэкенд-сервис успешно забрал данные из интернета и закэшировал постер на диск!")
-    else:
-        print("\n СБОЙ: Данные не получены. Проверьте правильность токена в файле .env.")
+    try:
+        print("Отправка прямого GET-запроса на сервер...")
+        response = requests.get(url, headers=headers, timeout=5)
+        
+        print(f"\n[ОТВЕТ СЕРВЕРА]:")
+        print(f" -> Код статуса: {response.status_code}")
+        print(f" -> Тело ответа: {response.text}")
+        
+        if response.status_code == 200:
+            print("\n УСПЕХ: Сервер принял ключ напрямую! Ключ рабочий.")
+        else:
+            print("\n СБОЙ: Проверьте, точно ли этот токен скопирован из ЛК.")
+            
+    except Exception as e:
+        print(f"\n Ошибка подключения: {e}")
     print("=" * 60)
 
 if __name__ == "__main__":
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    start_backend_network_test()
+    run_direct_network_test()
