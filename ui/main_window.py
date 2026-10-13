@@ -1,9 +1,3 @@
-"""
-Модуль главного графического окна Amagi-Player.
-Реализует дизайн-систему Cinematic Dark, верхнюю панель навигации (Header),
-парящий остров продолжения просмотра и менеджер экранов.
-"""
-
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QStackedWidget, QPushButton, QLabel, QFrame, QLineEdit
@@ -13,10 +7,6 @@ import os
 import config
 
 class MainWindow(QMainWindow):
-    """
-    Главное окно приложения в стиле современных стриминговых медиаплатформ.
-    """
-    
     theme_toggle_requested = pyqtSignal()
     settings_opened = pyqtSignal()
     resume_movie_requested = pyqtSignal(int)
@@ -24,14 +14,13 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Amagi-Player")
-        self.resize(1100, 800)
+        self.resize(1150, 820) # Оптимальный размер для дорогого визуала
         self._current_resume_id = None
         
         self._init_ui_core()
         self._load_stylesheet()
 
     def _init_ui_core(self):
-        """Разворачивает структуру слоев приложения."""
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
         
@@ -39,34 +28,42 @@ class MainWindow(QMainWindow):
         base_layout.setContentsMargins(0, 0, 0, 0)
         base_layout.setSpacing(0)
 
-        # 1. Верхняя панель (Header)
+        # 1. СТЕКЛЯННАЯ ВЕРХНЯЯ ПАНЕЛЬ (HEADER BAR)
         self.header_bar = QWidget(central_widget)
         self.header_bar.setObjectName("headerBar")
-        self.header_bar.setFixedHeight(70)
+        self.header_bar.setFixedHeight(75)
         
         header_layout = QHBoxLayout(self.header_bar)
-        header_layout.setContentsMargins(30, 0, 30, 0)
+        header_layout.setContentsMargins(40, 0, 40, 0)
         
+        # Логотип AMAGI (Стильный, разреженный шрифт Кинопоиска)
         logo_label = QLabel("AMAGI", self.header_bar)
-        logo_label.setStyleSheet("color: #FF6600; font-size: 22px; font-weight: 900; letter-spacing: 2px;")
+        logo_label.setStyleSheet("""
+            color: #FFFFFF; 
+            font-size: 24px; 
+            font-weight: 900; 
+            letter-spacing: 5px;
+        """)
         header_layout.addWidget(logo_label)
-        header_layout.addSpacing(40)
+        header_layout.addSpacing(50)
         
+        # Премиальная строка поиска
         self.search_bar = QLineEdit(self.header_bar)
         self.search_bar.setObjectName("searchBar")
-        self.search_bar.setPlaceholderText("Поиск по легальному некоммерческому фонду...")
-        self.search_bar.setFixedWidth(450)
+        self.search_bar.setPlaceholderText("Поиск фильмов по культурному фонду...")
+        self.search_bar.setFixedWidth(420)
         header_layout.addWidget(self.search_bar)
         
         header_layout.addStretch()
         base_layout.addWidget(self.header_bar)
 
-        # 2. Рабочая зона
+        # 2. ОСНОВНАЯ ЗОНА КОНТЕНТА
         content_wrapper = QWidget(central_widget)
         content_layout = QVBoxLayout(content_wrapper)
-        content_layout.setContentsMargins(30, 20, 30, 20)
-        content_layout.setSpacing(15)
+        content_layout.setContentsMargins(40, 30, 40, 25) # Просторные отступы
+        content_layout.setSpacing(20)
 
+        # Стек экранов
         self.screen_stack = QStackedWidget(content_wrapper)
         self.feed_page_placeholder = QWidget()
         self.settings_page_placeholder = QWidget()
@@ -74,7 +71,7 @@ class MainWindow(QMainWindow):
         self.screen_stack.addWidget(self.settings_page_placeholder)
         content_layout.addWidget(self.screen_stack)
 
-        # Нижняя системная панель
+        # Нижняя системная панель кнопок
         bottom_bar = QWidget(content_wrapper)
         bottom_layout = QHBoxLayout(bottom_bar)
         bottom_layout.setContentsMargins(0, 0, 0, 0)
@@ -92,13 +89,13 @@ class MainWindow(QMainWindow):
         content_layout.addWidget(bottom_bar)
         base_layout.addWidget(content_wrapper)
 
-        # 3. Парящий остров истории
+        # 3. ПАРЯЩИЙ ОСТРОВ «ПРОДОЛЖИТЬ ПРОСМОТР» (FLOATING ISLAND)
         self.resume_island = QFrame(central_widget)
         self.resume_island.setObjectName("continueIsland")
-        self.resume_island.setFixedSize(550, 50)
+        self.resume_island.setFixedSize(560, 56)
         
         island_layout = QHBoxLayout(self.resume_island)
-        island_layout.setContentsMargins(20, 0, 15, 0)
+        island_layout.setContentsMargins(25, 0, 15, 0)
         
         self.resume_label = QLabel("Продолжить просмотр: ...", self.resume_island)
         island_layout.addWidget(self.resume_label)
@@ -106,7 +103,7 @@ class MainWindow(QMainWindow):
         
         self.resume_action_btn = QPushButton("Смотреть", self.resume_island)
         self.resume_action_btn.setObjectName("actionButton")
-        self.resume_action_btn.setFixedHeight(32)
+        self.resume_action_btn.setFixedHeight(34)
         self.resume_action_btn.clicked.connect(self._on_resume_action_triggered)
         island_layout.addWidget(self.resume_action_btn)
         
@@ -125,7 +122,7 @@ class MainWindow(QMainWindow):
 
     def _reposition_resume_island(self):
         x = (self.width() - self.resume_island.width()) // 2
-        y = self.height() - self.resume_island.height() - 80
+        y = self.height() - self.resume_island.height() - 90 # Чуть приподнимем над кнопками
         self.resume_island.move(QPoint(x, y))
 
     def _load_stylesheet(self):
@@ -147,4 +144,3 @@ class MainWindow(QMainWindow):
         self.resume_label.setText(f"Продолжить: <b>{movie_title}</b>")
         self.resume_island.show()
         self._reposition_resume_island()
-
