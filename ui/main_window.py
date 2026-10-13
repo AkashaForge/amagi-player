@@ -1,7 +1,7 @@
 """
 Модуль главного графического окна Amagi-Player.
-Реализует премиальную дизайн-систему OLED Minimalism с эффектами Liquid Glass,
-парящей строкой поиска в белой рамке и пафосными разреженными шрифтами.
+Реализует премиальную дизайн-систему OLED Minimalism с вертикальным 
+двухуровневым островом истории Liquid Glass 2.0.
 """
 
 from PyQt6.QtWidgets import (
@@ -14,7 +14,7 @@ import config
 
 class MainWindow(QMainWindow):
     """
-    Главное графическое окно приложения Amagi-Player в ультра-минималистичном стиле.
+    Главное графическое окно приложения Amagi-Player.
     """
     theme_toggle_requested = pyqtSignal()
     settings_opened = pyqtSignal()
@@ -30,7 +30,7 @@ class MainWindow(QMainWindow):
         self._load_stylesheet()
 
     def _init_ui_core(self):
-        """Иннициализирует монолитную структуру слоев интерфейса."""
+        """Инициализирует структуру слоев интерфейса."""
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
         
@@ -94,50 +94,51 @@ class MainWindow(QMainWindow):
         content_layout.addWidget(bottom_bar)
         base_layout.addWidget(content_wrapper)
 
-        # 3. ПАРЯЩИЙ ОСТРОВ ИСТОРИИ (ЭФФЕКТ LIQUID GLASS)
+        # 3. ПАРЯЩИЙ ОСТРОВ ИСТОРИИ (ВЕРТИКАЛЬНЫЙ LIQUID GLASS 2.0)
         self.resume_island = QFrame(central_widget)
         self.resume_island.setObjectName("continueIsland")
-        self.resume_island.setFixedSize(600, 52) # Более вытянутая, строгая плашка
+        self.resume_island.setFixedSize(420, 96) # Компактный вертикальный остров-карточка
         
-        island_layout = QHBoxLayout(self.resume_island)
-        island_layout.setContentsMargins(25, 0, 15, 0)
+        # Используем Вертикальный Layout, чтобы выстроить текст над кнопкой
+        island_layout = QVBoxLayout(self.resume_island)
+        island_layout.setContentsMargins(20, 15, 20, 15)
+        island_layout.setSpacing(10)
         
-        # Текст на плашке (будет автоматически переведен в верхний регистр бэкендом)
-        self.resume_label = QLabel("ПРОДОЛЖИТЬ ПРОСМОТР: ...", self.resume_island)
+        # Верхний уровень: Название фильма (белый пафосный текст)
+        self.resume_label = QLabel("НАЗВАНИЕ ФИЛЬМА...", self.resume_island)
+        self.resume_label.setAlignment(Qt.AlignmentFlag.AlignCenter) # Центрируем текст
+        self.resume_label.setWordWrap(True) # На случай длинных названий
         island_layout.addWidget(self.resume_label)
         
-        island_layout.addStretch()
-        
-        # Монолитная белая кнопка действия
-        self.resume_action_btn = QPushButton("Смотреть", self.resume_island)
-        self.resume_action_btn.setObjectName("actionButton")
-        self.resume_action_btn.setFixedHeight(30)
+        # Нижний уровень: Кнопка действия "ПРОДОЛЖИТЬ ПРОСМОТР"
+        self.resume_action_btn = QPushButton("Продолжить просмотр", self.resume_island)
+        self.resume_action_btn.setObjectName("islandActionButton")
+        self.resume_action_btn.setFixedHeight(32)
         self.resume_action_btn.clicked.connect(self._on_resume_action_triggered)
         island_layout.addWidget(self.resume_action_btn)
         
-        # Минималистичный крестик закрытия
+        # Абсолютно позиционированный крестик в правом верхнем углу
         self.resume_close_btn = QPushButton("×", self.resume_island)
         self.resume_close_btn.setObjectName("closeIslandButton")
-        self.resume_close_btn.setFixedSize(24, 24)
+        self.resume_close_btn.setFixedSize(20, 20)
+        self.resume_close_btn.move(395, 5) # Сдвигаем в самый угол плашки
         self.resume_close_btn.clicked.connect(self.resume_island.hide)
-        island_layout.addWidget(self.resume_close_btn)
         
         self.resume_island.hide()
 
     def resizeEvent(self, event):
-        """Гарантирует идеальное центрирование острова жидкого стекла при изменении окна."""
+        """Пересчитывает центр экрана для нового вертикального острова."""
         super().resizeEvent(event)
         if self.resume_island.isVisible():
             self._reposition_resume_island()
 
     def _reposition_resume_island(self):
-        """Инженерный расчет координат парящего острова над нижними кнопками."""
+        """Центрирует плашку по горизонтали и вешает её над нижними кнопками."""
         x = (self.width() - self.resume_island.width()) // 2
         y = self.height() - self.resume_island.height() - 95
         self.resume_island.move(QPoint(x, y))
 
     def _load_stylesheet(self):
-        """Считывание QSS-модуля дизайна."""
         qss_path = os.path.join(config.BASE_DIR, "ui", "styles.qss")
         if os.path.exists(qss_path):
             with open(qss_path, "r", encoding="utf-8") as f:
@@ -152,9 +153,9 @@ class MainWindow(QMainWindow):
             self.resume_movie_requested.emit(self._current_resume_id)
 
     def show_resume_bar(self, movie_id: int, movie_title: str):
-        """Публичный интерфейс вызова плашки из бэкенда."""
+        """Отображает обновленный двухуровневый остров."""
         self._current_resume_id = movie_id
-        # Переводим название в верхний регистр для сохранения пафосного стиля
-        self.resume_label.setText(f"ПРОДОЛЖИТЬ: <b>{movie_title.upper()}</b>")
+        # Выводим название фильма крупным пафосным шрифтом в верхнем регистре
+        self.resume_label.setText(f"<b>{movie_title.upper()}</b>")
         self.resume_island.show()
         self._reposition_resume_island()
