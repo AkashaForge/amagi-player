@@ -1,0 +1,72 @@
+/* ==============================================================================
+   ТАБЛИЦА СТИЛЕЙ ИНТЕРФЕЙСА AMAGI-PLAYER
+   ============================================================================== */
+
+/* Базовый фон окон и stacked-контейнера по умолчанию (темный) */
+QMainWindow, QStackedWidget {
+    background-color: #121212;
+}
+
+/* Полупрозрачная парящая строка поиска с округлыми рамками */
+QLineEdit#searchBar {
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 15px;
+    padding: 8px 15px;
+    color: #FFFFFF;
+    font-size: 14px;
+}
+QLineEdit#searchBar:focus {
+    border: 1px solid #FF6B00; /* Оранжевая рамка при фокусе */
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Главная оранжевая кнопка «Смотреть» */
+QPushButton#actionButton {
+    background-color: #FF6B00;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: bold;
+    font-size: 14px;
+}
+QPushButton#actionButton:hover {
+    background-color: #E05E00;
+}
+
+/* Системные угловые кнопки (Настройки, Тема) */
+QPushButton#sysButton {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #E0E0E0;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+}
+QPushButton#sysButton:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Округлая ненавязчивая плашка «Продолжить просмотр» внизу */
+QFrame#continuePanel {
+    background-color: rgba(30, 30, 30, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+}
+QFrame#continuePanel QLabel {
+    color: #FFFFFF;
+    font-size: 13px;
+}
+
+/* Кнопка-крестик закрытия нижней плашки */
+QPushButton#closePanelButton {
+    background-color: transparent;
+    color: #888888;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+}
+QPushButton#closePanelButton:hover {
+    color: #FFFFFF;
+}
