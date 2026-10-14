@@ -207,27 +207,34 @@ class TorrentService(QObject):
         # Гарантируем наличие физической директории для портативного изолированного профиля
         os.makedirs(config.QBITTORRENT_PROFILE, exist_ok=True)
 
-        # Конструируем аргументы командной строки запуска для полной изоляции
+        # ДОБАВЛЕН ФЛАГ --no-splash и --minimized для принудительного скрытия GUI самого торрента
         cmd = [
             config.QBITTORRENT_EXE,
             f"--profile={config.QBITTORRENT_PROFILE}",
-            "--webui-port=8080"
+            "--webui-port=8080",
+            "--no-splash",   # Отключает стартовую картинку-логотип qBittorrent
+            "--minimized"    # Принудительно сворачивает клиент в трей/фон без открытия окна
         ]
 
         try:
             # Флаг Windows API для принудительного скрытия консолей и окон запускаемого приложения
-            creation_flags = subprocess.CREATE_NO_WINDOW
+            # Дополнительно настраиваем STARTUPINFO, чтобы полностью скрыть окно процесса в Windows
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = subprocess.SW_HIDE # Скрывает окно на уровне ОС
             
             self._process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-                creationflags=creation_flags
+                startupinfo=startupinfo,
+                creationflags=subprocess.CREATE_NO_WINDOW
             )
             return True
         except Exception as e:
             print(f"[КРИТИЧЕСКАЯ ОШИБКА ЗАПУСКА EXE]: {e}")
             return False
+
 
     def _apply_streaming_preferences(self):
         """Устанавливает оптимальные глобальные параметры WebAPI для непрерывного медиа-стриминга."""
