@@ -33,6 +33,18 @@ QBIT_URL = "http://localhost:8080"
 QBIT_USER = "admin"
 QBIT_PASSWORD = "adminadmin"
 
+# Точный путь к скопированному исполняемому файлу qBittorrent в папке проекта
+QBITTORRENT_EXE = os.path.join(BASE_DIR, "bin", "qbittorrent", "qbittorrent.exe")
+
+# Локальная директория для изолированного портативного профиля настроек qBittorrent
+QBITTORRENT_PROFILE = os.path.join(CACHE_DIR, "qbit_profile")
+
+
+# --- ВЫБОР АКТИВНОГО ИСТОЧНИКА ТОРРЕНТОВ ---
+# "archive"   -> Поиск строго легального кино на английском в Internet Archive
+# "rutracker" -> Автоматическое переключение на поиск по СНГ-базам (с русской озвучкой)
+P2P_PROVIDER = "archive"
+
 
 # --- ИНТЕГРАЦИЯ С ВНЕШНИМИ API ---
 # Автоматически считываем секретный токен из локального файла .env (если он существует)
