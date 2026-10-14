@@ -1,7 +1,8 @@
 """
-Модуль сервиса управления P2P-стримингом Amagi-Player.
-Обеспечивает скрытый запуск фонового клиента qBittorrent, авторизацию через WebAPI,
-принудительную последовательную буферизацию и асинхронный мониторинг потока.
+Модуль сервиса управления P2P-стримингом Amagi-Player. (Часть 1 из 2)
+Обеспечивает сканирование ОС на предмет зависших процессов, скрытый запуск 
+фонового клиента qBittorrent, авторизацию через WebAPI, принудительную 
+последовательную буферизацию медиафайлов и асинхронный мониторинг потока.
 """
 
 import os
@@ -15,7 +16,7 @@ import config
 class TorrentWorker(QThread):
     """
     Фоновый рабочий поток для асинхронного мониторинга состояния торрента.
-    Предотвращает замораживание графического интерфейса при сетевых запросах к WebAPI.
+    Предотвращает блокировку графического интерфейса при сетевых запросах к WebAPI.
     """
     # Сигнал для передачи текущего процента буферизации (0-100)
     progress_updated = pyqtSignal(int)
@@ -38,7 +39,8 @@ class TorrentWorker(QThread):
                 torrent_info = self.client.torrents_info(torrent_hashes=self.info_hash)
                 
                 if torrent_info:
-                    torrent = torrent_info[0]
+                    # Извлекаем первый элемент из возвращаемого списка раздач
+                    torrent = torrent_info
                     
                     # Расчет прогресса загрузки в процентах (значение от 0.0 до 1.0)
                     progress_percentage = int(torrent.get("progress", 0) * 100)
@@ -60,12 +62,10 @@ class TorrentWorker(QThread):
         """Безопасная остановка фонового цикла."""
         self._is_running = False
         self.wait()
-
-
 class TorrentService(QObject):
     """
     Менеджер P2P-архитектуры плеера. Управляет подпроцессом qBittorrent,
-    сессиями WebAPI и координирует фоновые потоки мониторинга.
+    сессиями WebAPI, зачисткой памяти ОС и координирует фоновые потоки.
     """
     def __init__(self):
         super().__init__()
@@ -80,21 +80,23 @@ class TorrentService(QObject):
 
     def start_engine(self) -> bool:
         """
-        Инициализирует P2P-движок. Проверяет наличие запущенных процессов,
-        разворачивает скрытый портативный клиент и устанавливает API-соединение.
+        Инициализирует P2P-движок. Проверяет наличие зависших процессов,
+        принудительно зачищает их, разворачивает чистый скрытый клиент и устанавливает API-соединение.
         """
-        # Предотвращаем дублирование процессов в операционной системе
+        # ПРОВЕРКА ЗАВИСШИХ ПРОЦЕССОВ: Сканируем систему на наличие призраков от прошлых крашей программы
         if self._is_qbittorrent_running():
-            print("[P2P ЯДРО]: Обнаружен уже запущенный процесс qBittorrent. Подключение к существующему.")
-        else:
-            print("[P2P ЯДРО]: Запуск скрытого фонового портативного клиента...")
-            if not self._spawn_hidden_process():
-                return False
+            print("[P2P ЯДРО]: Обнаружен старый зависший процесс qBittorrent после падения. Зачистка...")
+            self._kill_old_qbittorrent()
+
+        # Разворачиваем чистый скрытый фоновый портативный клиент в Windows
+        print("[P2P ЯДРО]: Запуск скрытого фонового портативного клиента...")
+        if not self._spawn_hidden_process():
+            return False
 
         # Инициализация HTTP-клиента WebAPI
         self.client = Client(host=self.host, username=self.username, password=self.password)
         
-        # Выполняем серию попыток подключения (клиенту нужно время на инициализацию портов)
+        # Выполняем серию попыток подключения (клиенту нужно время на инициализацию портов в ОС)
         for attempt in range(5):
             try:
                 self.client.auth_log_in()
@@ -131,9 +133,9 @@ class TorrentService(QObject):
             info_hash = target_torrent["hash"]
 
             # 2. АКТИВАЦИЯ СТРИМИНГОВЫХ РЕЖИМОВ
-            # Включаем последовательную загрузку (блоки качаются строго от 0 до конца файла)
+            # Включаем последовательную загрузку (блоки файла качаются строго по порядку от 0 до конца)
             self.client.torrents_toggle_sequential_download(torrent_hashes=info_hash)
-            # Форсируем приоритет для первого и последнего блоков (необходимо для чтения индексов плеером)
+            # Форсируем приоритет для первого и последнего блоков (необходимо для чтения заголовков видео плеером)
             self.client.torrents_toggle_first_last_piece_priority(torrent_hashes=info_hash)
 
             # 3. ИНИЦИАЛИЗАЦИЯ ПОТОКА МОНИТОРИНГА
@@ -141,7 +143,7 @@ class TorrentService(QObject):
                 self._worker.stop()
 
             self._worker = TorrentWorker(self.client, info_hash)
-            # Связываем внутренние сигналы рабочего потока с внешними колбэками UI
+            # Связываем внутренние асинхронные сигналы рабочего потока с внешними колбэками UI
             self._worker.progress_updated.connect(progress_callback)
             self._worker.stats_updated.connect(stats_callback)
             self._worker.start()
@@ -165,33 +167,47 @@ class TorrentService(QObject):
         self.stop_streaming()
         if self.client:
             try:
-                # Даем команду самому приложению qBittorrent завершить работу
+                # Даем команду самому приложению qBittorrent штатно завершить работу
                 self.client.application_shutdown()
                 print("[P2P ЯДРО]: Отправлена команда выключения приложения qBittorrent.")
             except Exception:
                 pass
         
-        # Жесткая очистка процесса, если он завис в памяти Windows
+        # Жесткая очистка подпроцесса, если он завис в памяти операционной системы
         if self._process:
             self._process.terminate()
 
     def _is_qbittorrent_running(self) -> bool:
-        """Сканирует системные процессы операционной системы на наличие qbittorrent."""
+        """Сканирует системную таблицу процессов на наличие запущенного qbittorrent."""
         for proc in psutil.process_iter(['name']):
-            if proc.info['name'] and 'qbittorrent' in proc.info['name'].lower():
-                return True
+            try:
+                if proc.info['name'] and 'qbittorrent' in proc.info['name'].lower():
+                    return True
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
         return False
 
+    def _kill_old_qbittorrent(self):
+        """Находит и принудительно завершает зависший в памяти процесс, освобождая сетевые порты."""
+        for proc in psutil.process_iter(['name']):
+            try:
+                if proc.info['name'] and 'qbittorrent' in proc.info['name'].lower():
+                    proc.kill()  # Принудительное уничтожение процесса (аналог Диспетчера Задач)
+                    proc.wait(timeout=2)  # Даем 2 секунды операционной системе на освобождение сокетов
+                    print("[P2P ЯДРО]: Старый зависший процесс успешно уничтожен.")
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+
     def _spawn_hidden_process(self) -> bool:
-        """Осуществляет низкоуровневый запуск бинарного файла Windows в изолированном режиме."""
+        """Осуществляет низкоуровневый запуск бинарного файла в полностью изолированном скрытом режиме."""
         if not os.path.exists(config.QBITTORRENT_EXE):
             print(f"[КРИТИЧЕСКАЯ ОШИБКА]: Исполняемый файл не найден по пути: {config.QBITTORRENT_EXE}")
             return False
 
-        # Гарантируем наличие физической директории для портативного профиля
+        # Гарантируем наличие физической директории для портативного изолированного профиля
         os.makedirs(config.QBITTORRENT_PROFILE, exist_ok=True)
 
-        # Конструируем аргументы запуска для изоляции конфигурации
+        # Конструируем аргументы командной строки запуска для полной изоляции
         cmd = [
             config.QBITTORRENT_EXE,
             f"--profile={config.QBITTORRENT_PROFILE}",
@@ -199,7 +215,7 @@ class TorrentService(QObject):
         ]
 
         try:
-            # Используем флаг скрытия консольного окна операционной системы (только для Windows OS)
+            # Флаг Windows API для принудительного скрытия консолей и окон запускаемого приложения
             creation_flags = subprocess.CREATE_NO_WINDOW
             
             self._process = subprocess.Popen(
@@ -216,10 +232,10 @@ class TorrentService(QObject):
     def _apply_streaming_preferences(self):
         """Устанавливает оптимальные глобальные параметры WebAPI для непрерывного медиа-стриминга."""
         preferences = {
-            "queueing_enabled": False,         # Отключаем ограничение очереди (качаем сразу)
-            "listen_port": 6881,               # Фиксированный стандартный порт для входящих пиров
-            "upnp": True,                      # Автоматический проброс портов на роутере
-            "max_connec": 200,                 # Ограничение соединений, чтобы не перегружать домашний роутер
+            "queueing_enabled": False,         # Отключаем очереди загрузки, чтобы качать поток немедленно
+            "listen_port": 6881,               # Фиксируем порт для входящих пиров распределенной сети
+            "upnp": True,                      # Включаем автоматический проброс портов на домашнем роутере
+            "max_connec": 200,                 # Ограничиваем сессии пиров, чтобы роутер не сбрасывал пакеты
         }
         try:
             self.client.app_set_preferences(preferences=preferences)
