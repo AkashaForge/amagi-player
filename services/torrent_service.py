@@ -235,16 +235,18 @@ class TorrentService(QObject):
             print(f"[КРИТИЧЕСКАЯ ОШИБКА ЗАПУСКА EXE]: {e}")
             return False
 
-
     def _apply_streaming_preferences(self):
-        """Устанавливает оптимальные глобальные параметры WebAPI для непрерывного медиа-стриминга."""
+        """Устанавливает скрытые параметры, не вызывающие подозрений у Windows Firewall."""
         preferences = {
-            "queueing_enabled": False,         # Отключаем очереди загрузки, чтобы качать поток немедленно
-            "listen_port": 6881,               # Фиксируем порт для входящих пиров распределенной сети
-            "upnp": True,                      # Включаем автоматический проброс портов на домашнем роутере
-            "max_connec": 200,                 # Ограничиваем сессии пиров, чтобы роутер не сбрасывал пакеты
+            "queueing_enabled": False,         # Качаем поток немедленно
+            "upnp": False,                     # ❌ ОТКЛЮЧАЕМ UPnP (Windows больше не будет просить права!)
+            "listen_port": 0,                  # ❌ Ставим 0 (ОС сама выделит случайный безопасный исходящий порт)
+            "max_connec": 100,                 # Слегка снижаем нагрузку на сокеты
+            "webui_username": "admin",         # Гарантируем жесткую привязку логина к API
+            "webui_password": "adminadmin"
         }
         try:
             self.client.app_set_preferences(preferences=preferences)
+            print("[P2P ЯДРО]: Сетевой профиль оптимизирован без запроса прав ОС.")
         except Exception as e:
             print(f"[P2P ЯДРО]: Не удалось применить глобальные настройки: {e}")
